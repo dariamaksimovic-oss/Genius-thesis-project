@@ -12,6 +12,7 @@ pn <- c("positive", "negative")
 
 # dataset con id canzone, eventuali info e parole nel testo
 full_tidy <- tidy_lyrics %>%
+  filter(song_id %in% en_id$song_id) %>% # filtro le canzoni in inglese
   inner_join(data %>%
                select(c(song_id, year, decade, artist_name, genres)),
              by = "song_id")
@@ -40,16 +41,14 @@ artist_freq %>%
   filter(artist_name %in% top_artists$artist_name) %>%
   ggplot(aes(x = sentiment, y = artist_name, fill = perc)) +
   geom_tile(color = "white") +
-  scale_fill_met_c(name = "Hokusai3",
-                   direction = -1,
-                   labels = percent_format(accuracy = 1)) +
-  labs(title = "Profilo emotivo degli artisti più popolari",
-       x = "Emozione",
+  scale_fill_viridis_c(option = "D",
+                       direction = 1,
+                       labels = scales::percent_format(accuracy = 1, scale = 1)) +
+  labs(x = "Emozione",
        y = "Artista",
        fill = "Frequenza relativa (%)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
-        axis.text.y = element_text(size = 8),
-        plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)))
+        axis.text.y = element_text(size = 8))
 
 #### Profilo emotivo dei generi ----
 top_genres <- data %>% unnest(genres) %>%
@@ -70,16 +69,14 @@ genres_freq %>%
   filter(genres %in% top_genres$genres) %>%
   ggplot(aes(x = sentiment, y = genres, fill = perc)) +
   geom_tile(color = "white") +
-  scale_fill_met_c(name = "Hokusai3",
-                   direction = -1,
-                   labels = percent_format(accuracy = 1)) +
-  labs(title = "Profilo emotivo dei generi più ascoltati",
-       x = "Emozione",
+  scale_fill_viridis_c(option = "D",
+                       direction = 1,
+                       labels = scales::percent_format(accuracy = 1, scale = 1)) +
+  labs(x = "Emozione",
        y = "Genere",
        fill = "Frequenza relativa (%)") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
-        axis.text.y = element_text(size = 8),
-        plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)))
+        axis.text.y = element_text(size = 8))
 
 #### Termini negativi e positivi più frequenti ----
 pn_count <- lyrics_nrc %>%
@@ -96,12 +93,11 @@ pn_count %>%
   facet_wrap(~ sentiment, scales = "free_y") +
   geom_col(show.legend = F, alpha = 0.8, color = "white") +
   coord_flip() +
-  labs(title = "Termini negativi e positivi più frequenti",
-       x = NULL,
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(x = NULL,
        y = "Frequenza assoluta") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2))) +
   geom_text(aes(label = n), color = "darkgrey", size = 3, fontface = "bold", hjust = -0.2) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 2))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 #### Emozioni più frequenti per decennio ----
 decade_freq <- lyrics_nrc %>%
@@ -121,14 +117,13 @@ top_decade_sent %>%
   ggplot(aes(x = reorder_within(sentiment, perc, decade), y = perc, fill = sentiment)) +
   geom_col(show.legend = F, color = "white") +
   coord_flip() +
+  scale_y_continuous(limits = c(0, 33), expand = c(0, 0)) +
   facet_wrap(~ decade, scales = "free_y") +
   scale_x_reordered() +
-  labs(title = "Emozioni più frequenti per decennio",
-       x = "Emozione",
+  labs(x = "Emozione",
        y = "Frequenza relativa (%)") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2))) +
   geom_text(aes(label = perc), color = "darkgrey", size = 3, fontface = "bold", hjust = -0.2) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 8))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 #### Sviluppo del sentiment nel corso degli anni ----
 year_freq <- lyrics_nrc %>%
@@ -142,18 +137,15 @@ year_freq <- lyrics_nrc %>%
 
 year_freq %>%
   ggplot(aes(x = year, y = perc, color = sentiment)) +
-  geom_line(linewidth = 0.75, show.legend = F, color = met.brewer("Hokusai3", 1)) +
+  geom_line(linewidth = 0.75, show.legend = F,
+            color = viridis(1, option = "D", begin = 0.3)) +
   facet_wrap( ~ sentiment, ncol = 4) +
   geom_smooth(se = T, color = "firebrick", linetype = "dotted", linewidth = 0.9,
               fill = "lightblue") +
-  labs(title = "Profilo emotivo nel corso degli anni",
-       subtitle = "Percentuale delle parole associate a ciascuna emozione",
-       x = "Anno",
+  labs(x = "Anno",
        y = "Frequenza relativa (%)",
        fill = "Emozione") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 #### Polarity Ratio (rapporto Positivi / Negativi)----
 decade_polarity <- lyrics_nrc %>%
@@ -180,14 +172,10 @@ year_polarity <- lyrics_nrc %>%
 
 year_polarity %>%
   ggplot(aes(x = year, y = polarity)) +
-  geom_line(linewidth = 0.75, color = met.brewer("Hokusai3", 1)) +
+  geom_line(linewidth = 0.75, color = viridis(1, option = "D", begin = 0.3)) +
   geom_hline(yintercept = 1, linetype = "dotted", color = "firebrick") +
-  labs(title = "Polarità nel corso degli anni",
-       subtitle = "Rapporto tra parole positive e negative",
-       x = "Anno",
-       y = "Ratio (Positivi / Negativi)") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11))
+  labs(x = "Anno",
+       y = "Ratio (Positivi / Negativi)")
 
 # Polarity = 1: Equal positive and negative words (neutral)
 # Polarity > 1: More positive than negative (optimistic tone)
@@ -211,14 +199,11 @@ trajectory <- lyrics_nrc %>%
 trajectory %>%
   ggplot(aes(x = year, y = polarity)) +
   geom_line(alpha = 0.3, color = "gray50") +
-  geom_smooth(se = T, color = met.brewer("Hokusai3", 1), fill = "lightblue") +
+  geom_smooth(se = T, color = viridis(1, option = "D", begin = 0.3),
+              fill = "lightblue") +
   geom_hline(yintercept = 0, linetype = "dotted", color = "firebrick") +
-  labs(title = "Traiettoria del sentiment complessivo",
-       subtitle = "Trend smussato con IC al 95%",
-       x = "Anno",
-       y = "Polarità media") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11))
+  labs(x = "Anno",
+       y = "Polarità media")
 
 
 

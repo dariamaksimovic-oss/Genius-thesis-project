@@ -1,7 +1,7 @@
 # DESCRIPTIVE ANALYSES =========================================================
 # selezione delle informazioni d'interesse
 library(gt)
-library(MetBrewer)
+library(viridis)
 
 ## META DATASET ================================================================
 # Struttura del primo dataset
@@ -31,7 +31,7 @@ data <- data %>%
 
 data %>%
   ggplot(mapping = aes(year)) +
-  geom_bar(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_bar(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   facet_wrap(vars(decade), scales = "free_x") +
   scale_x_continuous(breaks = seq(1950, 2020, by = 3)) +
   labs(x = "Anno",
@@ -68,12 +68,10 @@ data %>%
   count(genres, sort = TRUE) %>%
   slice_max(n, n = 30) %>%
   ggplot(mapping = aes(x = n, y = fct_reorder(str_to_title(genres), n))) +
-  geom_col(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_col(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   theme(axis.text.y = element_text(size = 8)) +
   geom_text(aes(label = n), color = "darkgrey", size = 3, fontface = "bold", hjust = -0.2) +
-  labs(y = "Genere",
-       title = "Numero di canzoni per genere") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)))
+  labs(y = "Genere")
 
 # album
 data %>%
@@ -100,13 +98,11 @@ data %>%
 data %>%
   filter(is.na(album_name) == FALSE) %>%
   count(album_name, sort = TRUE) %>%
-  slice_max(n, n = 20) %>%
+  slice_max(n, n = 25, with_ties = FALSE) %>%
   ggplot(mapping = aes(x = n, y = reorder(album_name, n))) +
-  geom_col(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_col(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   theme(axis.text.y = element_text(size = 8)) +
-  labs(y = "Album",
-       title = "Numero di canzoni per album") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)))
+  labs(y = "Album")
 
 # artist
 data %>% 
@@ -133,11 +129,9 @@ data %>%
   count(artist_name, sort = TRUE) %>%
   slice_max(n, n = 20) %>%
   ggplot(mapping = aes(x = n, y = reorder(artist_name, n))) +
-  geom_col(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_col(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   theme(axis.text.y = element_text(size = 8)) +
-  labs(y = "Artista",
-       title = "Numero di canzoni per artista") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2))) +
+  labs(y = "Artista") +
   geom_text(aes(label = n), color = "darkgrey", size = 3, fontface = "bold", hjust = -0.2)
 
 
@@ -151,12 +145,8 @@ data %>%
   geom_point(alpha = 0.6, size = 2) +
   labs(x = "# di visualizzazioni",
        y = "# di annotazioni",
-       color = "Decennio",
-       title = "Relazione tra visualizzazioni e annotazioni su Genius",
-       subtitle = "per decennio di uscita della canzone") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 6))
+       color = "Decennio") +
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 # Relazione tra anno di pubblicazione e numero di visualizzazioni
 data %>%
@@ -164,21 +154,15 @@ data %>%
   geom_point(alpha = 0.6, size = 2) +
   labs(x = "Anno",
        y = "# di visualizzazioni",
-       color = "Decennio",
-       title = "Relazione tra anno di uscita e visualizzazioni",
-       subtitle = "per decennio") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 6))
+       color = "Decennio") +
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 data %>%
   ggplot(mapping = aes(x = decade, y = song_pageviews)) +
   geom_boxplot(alpha = 0.7, show.legend = FALSE, outlier.size = 1.5,
-               fill = met.brewer("Hokusai3", 1), color = "black") +
+               fill = viridis(1, option = "D", begin = 0.1), color = "black") +
   labs(x = "Decennio",
-       y = "# di visualizzazioni",
-       title = "Distribuzione delle visualizzazioni per decennio") +
-  theme(plot.title = element_text(face = "bold", size = 12))
+       y = "# di visualizzazioni")
 
 # Relazione tra anno di pubblicazione e numero di annotazioni
 data %>%
@@ -186,22 +170,16 @@ data %>%
   geom_point(alpha = 0.6, size = 2) +
   labs(x = "Anno",
        y = "# di annotazioni",
-       color = "Decennio",
-       title = "Relazione tra anno di uscita e annotazioni",
-       subtitle = "per decennio") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 6))
+       color = "Decennio") +
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 data %>%
   ggplot(mapping = aes(x = decade, y = song_annotation_count)) +
   geom_boxplot(alpha = 0.7, show.legend = FALSE, outlier.size = 1.5,
-               fill = met.brewer("Hokusai3", 1), 
+               fill = viridis(1, option = "D", begin = 0.1),
                color = "black") +
   labs(x = "Decennio",
-       y = "# di annotazioni",
-       title = "Distribuzione delle annotazioni per decennio") +
-  theme(plot.title = element_text(face = "bold", size = 12))
+       y = "# di annotazioni")
 
 
 
@@ -209,6 +187,19 @@ data %>%
 # tokenizzazione dei testi
 word_count_songname <- tidy_song_name %>% count(word, sort = TRUE)
 word_count_lyrics <- tidy_lyrics %>% count(word, sort = TRUE)
+
+# Canzoni strumentali
+lyrics %>%
+  count(is_instrumental, sort = TRUE)
+
+# Lingua del brano
+lyrics$lang[lyrics$is_instrumental == TRUE] <- "instr"
+lyrics %>%
+  count(lang, sort = TRUE)
+# Canzoni esclusivamente in inglese
+en_id <- lyrics %>%
+  filter(lang == "en") %>%
+  select(song_id)
 
 # Tabelle di frequenza delle parole nei titoli e nei testi delle canzoni
 word_count_songname %>%
@@ -246,31 +237,28 @@ word_count_songname %>%
   filter(n > 3) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x=word, y=n)) +
-  geom_col(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_col(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   geom_text(aes(label=n), color="darkgrey", size=3, fontface="bold", hjust=-0.2) +
   coord_flip() +
-  labs(x = "n",
-       y = "parola",
-       title = "Frequenza assoluta delle parole nei titoli delle canzoni") +
-  theme(plot.title = element_text(face = "bold", size = 12))
+  labs(x = "Parola",
+       y = "n")
 
 word_count_lyrics %>%
   filter(n > 200) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x=word, y=n)) +
-  geom_col(fill = met.brewer("Hokusai3", 1), color = "white") +
+  geom_col(fill = viridis(1, option = "D", begin = 0.4), color = "white") +
   geom_text(aes(label=n), color="darkgrey", size=3, fontface="bold", hjust=-0.2) +
   coord_flip() +
-  labs(x = "n",
-       y = "parola",
-       title = "Frequenza assoluta delle parole nei testi delle canzoni") +
-  theme(plot.title = element_text(face = "bold", size = 12))
+  labs(x = "Parola",
+       y = "n")
 
 # Wordclouds
-palette_title <- colorRampPalette(met.brewer("Hokusai3"))(nrow(word_count_songname))
-palette_lyrics <- colorRampPalette(met.brewer("Hokusai3"))(nrow(word_count_lyrics))
+palette_title <- viridis(nrow(word_count_songname), option = "D", begin = 0.1, end = 0.9)
+palette_lyrics <- viridis(nrow(word_count_lyrics), option = "D", begin = 0.1, end = 0.9)
 
 word_count_songname %>%
+  filter(word != "ft") %>%
   arrange(desc(n)) %>%
   rename(word=word, freq=n) %>%
   wordcloud2::wordcloud2(backgroundColor = "white", color = palette_title)

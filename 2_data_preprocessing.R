@@ -4,13 +4,12 @@ library(tm)
 library(stopwords)
 library(tidytext)
 
-text_preprocessing<- function(x) {
-  gsub('http\\S+\\s*','',x) # rimozione di URLs
-  gsub('#\\S+','',x) # rimozione di hashtags
-  gsub('[[:cntrl:]]','',x) # rimozione di caratteri di controllo ASCII e di caratteri speciali
-  gsub("^[[:space:]]*","",x) # rimozione di whitespaces a inizio stringa
-  gsub("[[:space:]]*$","",x) # rimozione di whitespaces a fine stringa
-  gsub(' +', ' ', x) # rimozione di whitespaces in eccesso
+text_preprocessing <- function(x) {
+  x %>% gsub('http\\S+\\s*', '', .) %>% # rimozione di URLs
+    gsub('#\\S+', '', .) %>% # rimozione di hashtags
+    gsub('[[:cntrl:]]', ' ', .) %>% # rimozione di caratteri di controllo ASCII e di caratteri speciali
+    gsub('^[[:space:]]+|[[:space:]]+$', '', .) %>% # rimozione di whitespaces a inizio e fine stringa
+    gsub(' +', ' ', .) # rimozione di whitespaces in eccesso
 }
 
 data <- read.csv("complete_metadata.csv", sep = ";", row.names = 1)
@@ -51,7 +50,15 @@ lyrics$lyrics_clean <- lyrics$lyrics_clean %>%
   removeNumbers() %>% 
   stripWhitespace()
 
+lyrics <- lyrics %>%
+  mutate(lang = detect_language(lyrics))
+
 tidy_lyrics <- lyrics[, c(1, 4)] %>% unnest_tokens(word, lyrics_clean)
+
+tidy_lyrics <- lyrics %>%
+  filter(is_instrumental == FALSE) %>% # considero solamente i brani con testo
+  select(c(song_id, lyrics_clean)) %>%
+  unnest_tokens(word, lyrics_clean)
 
 # lemmatization
 library(textstem)

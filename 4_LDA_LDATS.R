@@ -4,6 +4,7 @@ library(topicmodels)
 
 # frequenze delle parole per anno
 year_word_freq <- tidy_lyrics %>%
+  filter(song_id %in% en_id$song_id) %>% # filtro le canzoni in inglese
   inner_join(data %>%
                select(c(song_id, year))) %>% # associo ad ogni canzone l'anno di produzione
   count(year, word) %>% # conteggio delle parole per anno
@@ -12,6 +13,7 @@ year_word_freq <- tidy_lyrics %>%
 
 # frequenze delle parole per decennio
 decade_word_freq <- tidy_lyrics %>%
+  filter(song_id %in% en_id$song_id) %>% # filtro le canzoni in inglese
   inner_join(data %>%
                select(c(song_id, decade))) %>% # associo ad ogni canzone l'anno di produzione
   count(decade, word) %>% # conteggio delle parole per anno
@@ -36,20 +38,21 @@ useless_words <- c("yes", "hey", "ah", "eh", "oh", "uh", "je", "ha", "hu", "la",
                    "gegegeyeah", "aah", "haa", "ahh", "geyeah", "yeyeah", "heehee",
                    "heeheehee", "oohooh", "oohoohooh", "oohoohoohyeah", 
                    "woohoohoohoohoo", "oohoohoohooh", "oohooh", "yo", "ayo",
-                   "ooh", "doodoo", "ayy")
+                   "ooh", "doodoo", "ayy", "wah", "em", "na", "ne", "hoo",
+                   "rocrocrocrocrocrocrocroc", "rocrocrocrocrocrocrocrocroc")
 
 # rimozione
-dim(year_word_freq) # 3035 x 3
+dim(year_word_freq) # 2955 x 3
 year_word_freq <- year_word_freq %>%
   filter(!word %in% useless_words) %>%
   filter(!str_detect(word, "^(ha|ah|oh|la|na|da|ba|ye|wo){2,}$"))
-dim(year_word_freq) # 2783 x 3
+dim(year_word_freq) # 2692 x 3
 
-dim(decade_word_freq) # 2867 x 3
+dim(decade_word_freq) # 2791 x 3
 decade_word_freq <- decade_word_freq %>%
   filter(!word %in% useless_words) %>%
   filter(!str_detect(word, "^(ha|ah|oh|la|na|da|ba|ye|wo){2,}$"))
-dim(decade_word_freq) # 2736 x 3
+dim(decade_word_freq) # 2654 x 3
 
 # canzoni che compaiono in più di 30 anni di storia musicale
 year_word_freq %>%
@@ -77,7 +80,7 @@ year_word_freq <- year_word_freq %>%
 decade_word_freq <- decade_word_freq %>%
   filter(!word %in% ambiguous_words$word)
 
-c(dim(year_word_freq), dim(decade_word_freq)) # 2344 e 2642 righe
+c(dim(year_word_freq), dim(decade_word_freq)) # 2248 e 2556 righe
 
 # Document Term Matrix (anno come documento)
 year_dtm <- year_word_freq %>% 
