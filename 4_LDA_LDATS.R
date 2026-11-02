@@ -73,7 +73,7 @@ ambiguous_words <- year_word_freq %>%
 
 ambiguous_words$word <- c(ambiguous_words$word, "wanna", "gonna", "gotta", "thing",
                           "good", "give", "back", "sha", "doo", "da", "talkin", 
-                          "fahr", "bout")
+                          "fahr", "bout", "you")
 
 year_word_freq <- year_word_freq %>%
   filter(!word %in% ambiguous_words$word)
@@ -96,7 +96,7 @@ library(topicmodels)
 # per la riproducibilità
 set.seed(12345)
 
-devtools::install_github("nikita-moor/ldatuning") # non più disponibile nel CRAN
+# devtools::install_github("nikita-moor/ldatuning")
 
 ### Years as documents ---------------------------
 
@@ -113,10 +113,6 @@ ldatuning::FindTopicsNumber_plot(year_fit)
 # CaoJuan2009: LOWER values indicate a better model (seek a minimum)
 # Deveaud2014: HIGHER values indicate a better model (seek a maximum)
 
-# 6 topic
-year_lda_6 <- LDA(year_dtm, k = 6, method = "Gibbs",
-                  control = list(seed = 12345, iter = 2000, burnin = 500))
-
 # 7 topic
 year_lda_7 <- LDA(year_dtm, k = 7, method = "Gibbs",
                   control = list(seed = 12345, iter = 2000, burnin = 500))
@@ -125,36 +121,16 @@ year_lda_7 <- LDA(year_dtm, k = 7, method = "Gibbs",
 year_lda_8 <- LDA(year_dtm, k = 8, method = "Gibbs",
                   control = list(seed = 12345, iter = 2000, burnin = 500))
 
+# 9 topic
+year_lda_9 <- LDA(year_dtm, k = 9, method = "Gibbs",
+                  control = list(seed = 12345, iter = 2000, burnin = 500))
+
 # Valore stimato di alpha
-c("6 topic" = attr(year_lda_6, "alpha"),
-  "7 topic" = attr(year_lda_7, "alpha"),
-  "8 topic" = attr(year_lda_8, "alpha"))
+c("7 topic" = attr(year_lda_7, "alpha"),
+  "8 topic" = attr(year_lda_8, "alpha"),
+  "9 topic" = attr(year_lda_9, "alpha"))
 
-year_beta_6 <- tidy(year_lda_6, matrix = "beta")
-year_beta_6
-
-year6_top10 <- year_beta_6 %>% 
-  group_by(topic) %>% # raggruppamento per topic
-  slice_max(beta, n = 10, with_ties = F) %>% # 10 termini più rappresentativi
-  ungroup()%>% 
-  arrange(topic, -beta)
-year6_top10
-
-year6_top10 %>% 
-  mutate(term = reorder_within(term, beta, topic)) %>% 
-  ggplot(aes(beta, term, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  scale_y_reordered() +
-  facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
-       y = NULL)+
-  theme(axis.text.y = element_text(size = 9, color = "black"),
-        panel.grid.major.y = element_blank(),
-        panel.spacing.x = unit(1.5, "lines"),
-        panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 6))
-
+# 7 topic
 year_beta_7 <- tidy(year_lda_7, matrix = "beta")
 
 year7_top10 <- year_beta_7 %>% 
@@ -169,15 +145,15 @@ year7_top10 %>%
   geom_col(show.legend = FALSE) +
   scale_y_reordered() +
   facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
+  labs(x = expression(beta),
        y = NULL)+
   theme(axis.text.y = element_text(size = 9, color = "black"),
         panel.grid.major.y = element_blank(),
         panel.spacing.x = unit(1.5, "lines"),
         panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 7))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
+# 8 topic
 year_beta_8 <- tidy(year_lda_8, matrix = "beta")
 
 year8_top10 <- year_beta_8 %>% 
@@ -192,61 +168,45 @@ year8_top10 %>%
   geom_col(show.legend = FALSE) +
   scale_y_reordered() +
   facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
+  labs(x = expression(beta),
        y = NULL)+
   theme(axis.text.y = element_text(size = 9, color = "black"),
         panel.grid.major.y = element_blank(),
         panel.spacing.x = unit(1.5, "lines"),
         panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 8))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
-# modello selezionato: a 7 topic
-extra_words <- c("rocrocrocrocrocrocrocrocroc", "autobahn", "der", "auf")
-year_word_freq <- year_word_freq %>%
-  filter(!word %in% extra_words)
-decade_word_freq <- decade_word_freq %>%
-  filter(!word %in% extra_words)
+# 9 topic
+year_beta_9 <- tidy(year_lda_9, matrix = "beta")
 
-year_dtm <- year_word_freq %>% 
-  cast_dtm(year, word, n)
-decade_dtm <- decade_word_freq %>% 
-  cast_dtm(decade, word, n)
-
-# modello LDA a 7 topic
-year_lda <- LDA(year_dtm, k = 7, method = "Gibbs",
-                control = list(seed = 12345, iter = 2000, burnin = 500))
-
-# analisi dei beta
-year_beta <- tidy(year_lda, matrix = "beta")
-year_top10 <- year_beta %>% 
+year9_top10 <- year_beta_9 %>% 
   group_by(topic) %>% # raggruppamento per topic
   slice_max(beta, n = 10, with_ties = F) %>% # 10 termini più rappresentativi
   ungroup()%>% 
   arrange(topic, -beta)
-# distribuzione parole per topic
-year_top10 %>% 
+
+year9_top10 %>% 
   mutate(term = reorder_within(term, beta, topic)) %>% 
   ggplot(aes(beta, term, fill = factor(topic))) +
   geom_col(show.legend = FALSE) +
   scale_y_reordered() +
   facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
+  labs(x = expression(beta),
        y = NULL)+
   theme(axis.text.y = element_text(size = 9, color = "black"),
         panel.grid.major.y = element_blank(),
         panel.spacing.x = unit(1.5, "lines"),
         panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 7))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
-# assegnazione di etichette ai topic
-year_topic <- c("American Punk Youth", "Obscure and Childhood",
-                "Resistance, Freedom and Hope", "Funk and Soul",
-                "Rock n Roll and Change", "Rock Energy", "Night Life and Disco")
+
+# selezione finale: modello LDA a 7 topic
+year_topic <- c("Riflessione", "Funk - Soul - Vita Notturna",
+                "Giovinezza", "Cambiamenti - Beatles", "Energia Rock",
+                "Vita Quotidiana - Drammi", "Rock n Roll - Generazioni")
 
 # analisi di gamma
-year_gamma <- tidy(year_lda, matrix = "gamma")
+year_gamma <- tidy(year_lda_7, matrix = "gamma")
 head(year_gamma)
 
 # ciascun valore è la porzione di parole provenienti da un determinato
@@ -257,28 +217,25 @@ year_gamma %>%
          topic = rep(year_topic, each = 60)) %>%
   ggplot(aes(x = year, y = gamma, color = factor(topic))) +
   geom_line(linewidth = 0.80, show.legend = T) +
-  labs(title = "Distribuzione dei topic negli anni",
-       x = "Anno",
+  labs(x = "Anno",
        y = expression(gamma),
        color = "Topic") +
   theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
         plot.subtitle = element_text(size = 11),
         axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 7))
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 year_gamma %>%
   mutate(year = as.numeric(document),
          topic = rep(year_topic, each = 60)) %>%
   ggplot(aes(x = year, y = gamma)) +
-  geom_line(linewidth = 0.80, show.legend = T, color = met.brewer("Hokusai3", 1)) +
+  geom_line(linewidth = 0.80, show.legend = T,
+            color = viridis(1, option = "D", begin = 0.3)) +
   geom_smooth(se = F, color = "firebrick", linewidth = 1) +
   facet_wrap(~ factor(topic), ncol = 3) +
-  labs(title = "Distribuzione dei topic negli anni",
-       x = "Anno",
+  labs(x = "Anno",
        y = expression(gamma)) +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1))
 
 ### Decades as documents -------------------------
 
@@ -291,52 +248,24 @@ decade_fit <- ldatuning::FindTopicsNumber(
 
 ldatuning::FindTopicsNumber_plot(decade_fit)
 
-# 7 topic
-decade_lda_7 <- LDA(decade_dtm, k = 7, method = "Gibbs",
-                    control = list(seed = 12345, iter = 2000, burnin = 500))
-
-# 8 topic
+# 8 topics
 decade_lda_8 <- LDA(decade_dtm, k = 8, method = "Gibbs",
                     control = list(seed = 12345, iter = 2000, burnin = 500))
 
-# 9 topic
+# 9 topics
 decade_lda_9 <- LDA(decade_dtm, k = 9, method = "Gibbs",
                     control = list(seed = 12345, iter = 2000, burnin = 500))
 
 # Valore stimato di alpha
-c("7 topic" = attr(decade_lda_7, "alpha"),
-  "8 topic" = attr(decade_lda_8, "alpha"),
+c("8 topic" = attr(decade_lda_8, "alpha"),
   "9 topic" = attr(decade_lda_9, "alpha"))
-
-decade_beta_7 <- tidy(decade_lda_7, matrix = "beta")
-
-decade7_top10 <- decade_beta_7 %>% 
-  group_by(topic) %>% # raggruppamento per topic
-  slice_max(beta, n = 10, with_ties = F) %>% # 10 termini più rappresentativi
-  ungroup()%>% 
-  arrange(topic, -beta)
-
-decade7_top10 %>% 
-  mutate(term = reorder_within(term, beta, topic)) %>% 
-  ggplot(aes(beta, term, fill = factor(topic))) +
-  geom_col(show.legend = FALSE) +
-  scale_y_reordered() +
-  facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
-       y = NULL)+
-  theme(axis.text.y = element_text(size = 9, color = "black"),
-        panel.grid.major.y = element_blank(),
-        panel.spacing.x = unit(1.5, "lines"),
-        panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 7))
 
 decade_beta_8 <- tidy(decade_lda_8, matrix = "beta")
 
 decade8_top10 <- decade_beta_8 %>% 
   group_by(topic) %>% # raggruppamento per topic
   slice_max(beta, n = 10, with_ties = F) %>% # 10 termini più rappresentativi
-  ungroup()%>% 
+  ungroup() %>% 
   arrange(topic, -beta)
 
 decade8_top10 %>% 
@@ -345,60 +274,69 @@ decade8_top10 %>%
   geom_col(show.legend = FALSE) +
   scale_y_reordered() +
   facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
+  labs(x = expression(beta),
        y = NULL)+
   theme(axis.text.y = element_text(size = 9, color = "black"),
         panel.grid.major.y = element_blank(),
         panel.spacing.x = unit(1.5, "lines"),
         panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 8))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
-decade_lda <- LDA(decade_dtm, k = 8, method = "Gibbs",
-                  control = list(seed = 12345, iter = 2000, burnin = 500))
+decade_beta_9 <- tidy(decade_lda_9, matrix = "beta")
 
-# beta
-decade_beta <- tidy(decade_lda, matrix = "beta")
+decade9_top10 <- decade_beta_9 %>% 
+  group_by(topic) %>% # raggruppamento per topic
+  slice_max(beta, n = 10, with_ties = F) %>% # 10 termini più rappresentativi
+  ungroup() %>% 
+  arrange(topic, -beta)
 
+decade9_top10 %>% 
+  mutate(term = reorder_within(term, beta, topic)) %>% 
+  ggplot(aes(beta, term, fill = factor(topic))) +
+  geom_col(show.legend = FALSE) +
+  scale_y_reordered() +
+  facet_wrap(~ topic, scales = "free_y", ncol = 3) +
+  labs(x = expression(beta),
+       y = NULL)+
+  theme(axis.text.y = element_text(size = 9, color = "black"),
+        panel.grid.major.y = element_blank(),
+        panel.spacing.x = unit(1.5, "lines"),
+        panel.spacing.y = unit(1.2, "lines")) +
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
+
+# selezione finale: modello a 9 topic
 # etichette assegnate ai topic
-decade_topic <- c("Funk and Soul", "Tension and Resistance", "Rock and Resistance",
-                  "Street Culture", "Relationships", "Growth",
-                  "Rock n Roll, Blues and Sound", "Rythm and Energy")
+decade_topic <- c("Vita quotidiana", "Emozioni Intense", "Rock n Roll - Blues",
+                  "Amore - Vita Notturna", "Beatles - Cambiamenti", "Soul - Funk", 
+                  "Energia Rock", "Spiritualità - Religione", "Punk - Distopico")
 
 # Analisi gamma (distribuzione topic per documento)
 # per-documento-per-topic probabilities
 # ciascun valore è la porzione di parole provenienti da un determinato
 # documento generate da un determinato topic
-decade_gamma <- tidy(decade_lda, matrix = "gamma")
-head(decade_gamma)
+decade_gamma <- tidy(decade_lda_9, matrix = "gamma")
 
 decade_gamma %>%
-  mutate(year = rep(seq(1950, 2000, by = 10), times = 8),
+  mutate(year = rep(seq(1950, 2000, by = 10), times = 9),
          topic = rep(decade_topic, each = 6)) %>%
   ggplot(aes(x = year, y = gamma, color = factor(topic))) +
   geom_line(linewidth = 0.80, show.legend = T) +
-  labs(title = "Distribuzione dei topic negli anni",
-       x = "Anno",
+  labs(x = "Anno",
        y = expression(gamma),
        color = "Topic") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 8))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 decade_gamma %>%
   mutate(year = factor(document),
          topic = rep(decade_topic, each = 6)) %>%
   ggplot(aes(x = year, y = gamma, fill = factor(topic))) +
   geom_bar(stat = "identity", position = "stack", show.legend = T) +
-  labs(title = "Distribuzione dei topic negli anni",
-       x = "Anno",
+  labs(x = "Anno",
        y = expression(gamma),
        fill = "Topic") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 8))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 
 ## LDA PAIRED WITH TIME SERIES =================================================
@@ -412,14 +350,11 @@ year_gamma %>%
          topic = rep(year_topic, each = 60)) %>%
   ggplot(aes(x = year, y = gamma, color = factor(topic))) +
   geom_smooth(se = F) +
-  labs(title = "Traiettoria smussata di gamma per topic",
-       x = "Anno",
+  labs(x = "Anno",
        y = expression(gamma),
        color = "Topic") +
-  theme(plot.title = element_text(face = "bold", size = 12, margin = margin(b = 2)),
-        plot.subtitle = element_text(size = 11),
-        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
-  scale_color_manual(values = met.brewer("Hokusai3", 8))
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
+  scale_color_viridis_d(option = "D", begin = 0.1, end = 0.9)
 
 dtm_mat <- as.matrix(year_dtm)
 covariate_matrix <- data.frame(id = 1:60,
@@ -435,7 +370,7 @@ ldats_year <- LDA_TS(data, topics = 5:9, nseeds = 20, nchangepoints = 1:5,
                      formulas = ~1, timename = "year")
 
 names(ldats_year)
-# [1] "LDA models"         "Selected LDA model" "TS models"          "Selected TS model"
+# [1] "LDA models" "Selected LDA model" "TS models" "Selected TS model"
 
 # numero di topic
 ldats_year$`Selected LDA model`$k@k
@@ -443,18 +378,14 @@ ldats_year$`Selected LDA model`$k@k
 
 # Akaike Information Criteria
 ldats_year$`Selected TS model`$AIC
-# [1] 265.8513
+# [1] 271.7863
 
 # numero di changepoint
 ldats_year$`Selected TS model`$nchangepoints
-# [1] 3
+# [1] 2
 
 # posizione dei changepoint
 ldats_year$`Selected TS model`$rho_summary
-#                  Mean Median Mode Lower_95% Upper_95%   SD MCMCerr   AC10      ESS
-# Changepoint_1 1969.27   1969 1969      1968      1975 1.84  0.0184 0.3266 497.6322
-# Changepoint_2 1981.57   1982 1982      1979      1983 1.40  0.0140 0.4528 360.5460
-# Changepoint_3 1997.51   1998 1998      1994      1999 1.29  0.0129 0.5239 263.3213
 
 plot(ldats_year$`Selected LDA model`)
 plot(ldats_year$`Selected TS model`)
@@ -474,11 +405,10 @@ ldats_top10 %>%
   geom_col(show.legend = FALSE) +
   scale_y_reordered() +
   facet_wrap(~ topic, scales = "free_y", ncol = 3) +
-  labs(title = "Top 10 termini per Topic",
-       x = expression(beta),
+  labs(x = expression(beta),
        y = NULL)+
   theme(axis.text.y = element_text(size = 9, color = "black"),
         panel.grid.major.y = element_blank(),
         panel.spacing.x = unit(1.5, "lines"),
         panel.spacing.y = unit(1.2, "lines")) +
-  scale_fill_manual(values = met.brewer("Hokusai3", 9))
+  scale_fill_viridis_d(option = "D", begin = 0.1, end = 0.9)
